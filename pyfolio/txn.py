@@ -180,7 +180,7 @@ def get_turnover(positions, transactions, denominator='AGB'):
     """
 
     txn_vol = get_txn_vol(transactions)
-    traded_value = txn_vol.txn_volume
+    traded_value = txn_vol.txn_volume.astype(float)
 
     if denominator == 'AGB':
         # Actual gross book is the same thing as the algo's GMV
@@ -203,4 +203,12 @@ def get_turnover(positions, transactions, denominator='AGB'):
     denom.index = denom.index.normalize()
     turnover = traded_value.div(denom, axis='index')
     turnover = turnover.fillna(0)
+    # Grouping daily volumes drops the index freq on modern pandas;
+    # restore it when the resulting dates are evenly spaced.
+    if (isinstance(turnover.index, pd.DatetimeIndex)
+            and turnover.index.freq is None and len(turnover) > 1):
+        deltas = turnover.index[1:] - turnover.index[:-1]
+        if (deltas == deltas[0]).all():
+            freq = 'D' if deltas[0] == pd.Timedelta(days=1) else deltas[0]
+            turnover = turnover.asfreq(freq)
     return turnover

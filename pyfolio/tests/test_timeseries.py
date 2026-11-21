@@ -263,8 +263,11 @@ class TestStats(TestCase):
     px_list_2 = [1.0, 1.2, 1.0, 0.8, 0.7, 0.8, 0.8, 0.8]
     dt_2 = pd.date_range('2000-1-3', periods=8, freq='D')
 
+    # Last window is (0, 0): mean 0 / std 0. pandas <= 1.4 produced
+    # inf here; pandas >= 1.5 correctly produces NaN (0/0). See
+    # pyfolio-reloaded's test_sharpe_2 skip note.
     @parameterized.expand([
-        (simple_rets[:5], 2, [np.nan, np.inf, np.inf, 11.224972160321, np.inf])
+        (simple_rets[:5], 2, [np.nan, np.inf, np.inf, 11.224972160321, np.nan])
     ])
     def test_sharpe_2(self, returns, rolling_sharpe_window, expected):
         np.testing.assert_array_almost_equal(
@@ -298,7 +301,7 @@ class TestCone(TestCase):
         midline = np.cumprod(1 + (rets.mean() * np.ones(days_forward)))
         stdev = rets.std() * midline * np.sqrt(np.arange(days_forward)+1)
 
-        normal_cone = pd.DataFrame(columns=pd.Float64Index([]))
+        normal_cone = pd.DataFrame(columns=pd.Index([], dtype='float64'))
         for s in cone_stdevs:
             normal_cone[s] = midline + s * stdev
             normal_cone[-s] = midline - s * stdev
