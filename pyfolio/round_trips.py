@@ -130,6 +130,11 @@ def _groupby_consecutive(txn, max_delta=pd.Timedelta('8h')):
     out = []
     for _, t in txn.groupby('symbol'):
         t = t.sort_index()
+        # Transactions from zipline carry the timestamp both as the
+        # index and as a 'dt' column (txn.make_transaction_frame);
+        # the index is authoritative, so drop the redundant column
+        # or reset_index() fails inserting 'dt' (#509).
+        t = t.drop(columns='dt', errors='ignore')
         t.index.name = 'dt'
         t = t.reset_index()
 

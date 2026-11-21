@@ -147,6 +147,38 @@ class RoundTripTestCase(TestCase):
         assert_frame_equal(round_trips.sort_index(axis='columns'),
                            expected.sort_index(axis='columns'))
 
+    def test_extract_round_trips_with_dt_column(self):
+        # Regression test for quantopian/pyfolio#509: transactions
+        # from zipline (utils.extract_rets_pos_txn_from_zipline /
+        # txn.make_transaction_frame) carry the timestamp both as
+        # the index and as a 'dt' column. extract_round_trips used
+        # to raise "ValueError: cannot insert dt, already exists".
+        dates = RoundTripTestCase.dates
+        transactions = DataFrame(
+            data=[[2, 10., 'A', dates[0], 'A', 1, 0., -20.],
+                  [-2, 15., 'A', dates[1], 'A', 2, 0., 30.]],
+            columns=['amount', 'price', 'symbol', 'dt', 'sid',
+                     'order_id', 'commission', 'txn_dollars'],
+            index=dates[:2])
+        expected = DataFrame(
+            data=[[dates[0], dates[1], Timedelta(days=1), 10., .5,
+                   True, 'A', 0.1]],
+            columns=['open_dt', 'close_dt', 'duration', 'pnl',
+                     'rt_returns', 'long', 'symbol', 'returns'],
+            index=[0])
+
+        round_trips = extract_round_trips(
+            transactions,
+            portfolio_value=Series([100., 100.], index=dates[:2]))
+
+        assert_frame_equal(round_trips.sort_index(axis='columns'),
+                           expected.sort_index(axis='columns'))
+
+        # A single such transaction already triggered the error.
+        grouped = _groupby_consecutive(transactions.iloc[:1])
+        self.assertEqual(len(grouped), 1)
+        self.assertEqual(grouped.index[0], dates[0])
+
     def test_add_closing_trades(self):
         dates = date_range(start='2015-01-01', periods=20)
         transactions = DataFrame(data=[[2, 10, 'A'],
