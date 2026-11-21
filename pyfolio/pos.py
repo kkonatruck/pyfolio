@@ -200,8 +200,7 @@ def get_sector_exposures(positions, symbol_sector_map):
             ", ".join(map(str, unmapped_pos)))
         warnings.warn(warn_message, UserWarning)
 
-    sector_exp = positions.groupby(
-        by=symbol_sector_map, axis=1).sum()
+    sector_exp = positions.T.groupby(by=symbol_sector_map).sum().T
 
     sector_exp['cash'] = cash
 
