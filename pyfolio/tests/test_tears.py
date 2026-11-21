@@ -170,3 +170,16 @@ class PositionsTestCase(TestCase):
                                             self.test_returns,
                                             **kwargs
                                             )
+
+    @cleanup
+    def test_plot_drawdown_periods_fewer_than_top(self):
+        # Regression: with fewer drawdowns than `top`,
+        # gen_drawdown_table pads with NaT rows; plotting them must
+        # not raise (matplotlib unit conversion rejects NaT).
+        import pandas as pd
+        from pyfolio import plotting
+        rets = pd.Series(
+            [0.01, -0.05, -0.02, 0.03, 0.04, 0.01, 0.01, 0.01],
+            index=pd.bdate_range('2022-01-03', periods=8, tz='UTC'))
+        ax = plotting.plot_drawdown_periods(rets, top=10)
+        self.assertIsNotNone(ax)
