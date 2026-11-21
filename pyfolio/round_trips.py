@@ -73,7 +73,17 @@ DURATION_STATS = OrderedDict(
      ])
 
 
+def _agg_spec(stats_dict):
+    # SeriesGroupBy.agg() rejects dicts ('nested renamer is not
+    # supported', pandas >= 1.0); a list of (name, func) tuples is
+    # the supported equivalent.
+    if hasattr(stats_dict, 'items'):
+        return list(stats_dict.items())
+    return stats_dict
+
+
 def agg_all_long_short(round_trips, col, stats_dict):
+    stats_dict = _agg_spec(stats_dict)
     stats_all = (round_trips
                  .assign(ones=1)
                  .groupby('ones')[col]
@@ -264,7 +274,7 @@ def extract_round_trips(transactions,
                                                                  second=0))
 
         tmp = (roundtrips.set_index('date')
-                         .join(pv.set_index('date'), lsuffix='_')
+                         .join(pv.set_index('date'), suffixes=('_', None))
                          .reset_index())
 
         roundtrips['returns'] = tmp.pnl / tmp.portfolio_value
@@ -378,7 +388,8 @@ def gen_round_trip_stats(round_trips):
                                           RETURN_STATS)
 
     stats['symbols'] = \
-        round_trips.groupby('symbol')['returns'].agg(RETURN_STATS).T
+        round_trips.groupby('symbol')['returns'].agg(
+            _agg_spec(RETURN_STATS)).T
 
     return stats
 
