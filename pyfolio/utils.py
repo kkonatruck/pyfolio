@@ -152,7 +152,7 @@ def extract_rets_pos_txn_from_zipline(backtest):
         backtest.index = backtest.index.tz_localize('UTC')
     returns = backtest.returns
     raw_positions = []
-    for dt, pos_row in backtest.positions.iteritems():
+    for dt, pos_row in backtest.positions.items():
         df = pd.DataFrame(pos_row)
         df.index = [dt] * len(df)
         raw_positions.append(df)
@@ -353,7 +353,7 @@ def estimate_intraday(returns, positions, transactions, EOD_hour=23):
     # Calculate exposure, then take peak of exposure every day
     txn_val['exposure'] = txn_val.abs().sum(axis=1)
     condition = (txn_val['exposure'] == txn_val.groupby(
-        pd.Grouper(freq='24H'))['exposure'].transform(max))
+        pd.Grouper(freq=pd.offsets.Hour(24)))['exposure'].transform(max))
     txn_val = txn_val[condition].drop('exposure', axis=1)
 
     # Compute cash delta

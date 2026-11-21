@@ -645,7 +645,7 @@ def show_perf_stats(returns, factor_returns=None, positions=None,
         perf_stats = pd.DataFrame(perf_stats_all, columns=['Backtest'])
 
     for column in perf_stats.columns:
-        for stat, value in perf_stats[column].iteritems():
+        for stat, value in perf_stats[column].items():
             if stat in STAT_FUNCS_PCT:
                 perf_stats.loc[stat, column] = str(np.round(value * 100,
                                                             3)) + '%'
@@ -1368,7 +1368,7 @@ def plot_turnover(returns, transactions, positions, turnover_denom='AGB',
     ax.yaxis.set_major_formatter(FuncFormatter(y_axis_formatter))
 
     df_turnover = txn.get_turnover(positions, transactions, turnover_denom)
-    df_turnover_by_month = df_turnover.resample("M").mean()
+    df_turnover_by_month = df_turnover.resample("ME").mean()
     df_turnover.plot(color='steelblue', alpha=1.0, lw=0.5, ax=ax, **kwargs)
     df_turnover_by_month.plot(
         color='orangered',
@@ -1702,7 +1702,7 @@ def plot_monthly_returns_timeseries(returns, ax=None, **kwargs):
     if ax is None:
         ax = plt.gca()
 
-    monthly_rets = returns.resample('M').apply(lambda x: cumulate_returns(x))
+    monthly_rets = returns.resample('ME').apply(lambda x: cumulate_returns(x))
     monthly_rets = monthly_rets.to_period()
 
     sns.barplot(x=monthly_rets.index,
