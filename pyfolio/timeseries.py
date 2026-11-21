@@ -892,7 +892,14 @@ def get_max_drawdown_underwater(underwater):
 
     valley = underwater.idxmin()  # end of the period
     # Find first 0
-    peak = underwater[:valley][underwater[:valley] == 0].index[-1]
+    at_peak = underwater[:valley][underwater[:valley] == 0]
+    if len(at_peak):
+        peak = at_peak.index[-1]
+    else:
+        # The drawdown began with the first return, so its peak is the
+        # starting value, which has no date of its own. Report the
+        # first date.
+        peak = underwater.index[0]
     # Find last 0
     try:
         recovery = underwater[valley:][underwater[valley:] == 0].index[0]
@@ -956,8 +963,8 @@ def get_top_drawdowns(returns, top=10):
         peak, valley, recovery = get_max_drawdown_underwater(underwater)
         # Slice out draw-down period
         if not pd.isnull(recovery):
-            underwater.drop(underwater[peak: recovery].index[1:-1],
-                            inplace=True)
+            underwater = underwater.drop(
+                underwater[peak: recovery].index[1:-1])
         else:
             # drawdown has not ended yet
             underwater = underwater.loc[:peak]

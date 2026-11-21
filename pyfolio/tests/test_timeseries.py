@@ -33,6 +33,21 @@ class TestDrawdown(TestCase):
         drawdowns = timeseries.gen_drawdown_table(rets, top=1)
         self.assertEqual(drawdowns.loc[0, 'Net drawdown in %'], 25)
 
+    def test_get_max_drawdown_underwater_starts_underwater(self):
+        # Underwater series whose first value is already negative
+        # (drawdown began with the first return) must not crash and
+        # must report Timestamps for peak/valley/recovery (#652/#682).
+        idx = pd.date_range('2020-01-01', periods=6, freq='D')
+        underwater = pd.Series([-0.05, -0.08, -0.02, 0.0, -0.01, 0.0],
+                               index=idx)
+        peak, valley, recovery = \
+            timeseries.get_max_drawdown_underwater(underwater)
+        self.assertEqual(peak, idx[0])
+        self.assertEqual(valley, idx[1])
+        self.assertEqual(recovery, idx[3])
+        for dt in (peak, valley, recovery):
+            self.assertIsInstance(dt, pd.Timestamp)
+
     drawdown_list = np.array(
         [100, 110, 120, 150, 180, 200, 100, 120,
          160, 180, 200, 300, 400, 500, 600, 800,
