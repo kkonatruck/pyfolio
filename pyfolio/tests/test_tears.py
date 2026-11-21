@@ -1,12 +1,61 @@
-from matplotlib.testing.decorators import cleanup
-
 from unittest import TestCase
-from nose_parameterized import parameterized
+from parameterized import parameterized
 
+import functools
+import inspect
 import os
 import gzip
+import warnings
+from contextlib import contextmanager
 
+import matplotlib
+import matplotlib.pyplot as plt
 from pandas import read_csv
+
+
+# matplotlib.testing.decorators.cleanup was removed in matplotlib 3.10;
+# this local shim preserves its behavior (reset rcParams/units and
+# close figures around each test). Adapted from
+# stefan-jansen/pyfolio-reloaded tests/test_tears.py (see #690).
+@contextmanager
+def _cleanup_cm():
+    orig_units_registry = matplotlib.units.registry.copy()
+    try:
+        with warnings.catch_warnings(), matplotlib.rc_context():
+            yield
+    finally:
+        matplotlib.units.registry.clear()
+        matplotlib.units.registry.update(orig_units_registry)
+        plt.close("all")
+
+
+def cleanup(style=None):
+    """Decorator ensuring global matplotlib state is reset per test."""
+
+    def make_cleanup(func):
+        if inspect.isgeneratorfunction(func):
+
+            @functools.wraps(func)
+            def wrapped_callable(*args, **kwargs):
+                with _cleanup_cm(), matplotlib.style.context(style):
+                    yield from func(*args, **kwargs)
+
+        else:
+
+            @functools.wraps(func)
+            def wrapped_callable(*args, **kwargs):
+                with _cleanup_cm(), matplotlib.style.context(style):
+                    func(*args, **kwargs)
+
+        return wrapped_callable
+
+    if callable(style):
+        result = make_cleanup(style)
+        # Default of mpl_test_settings fixture and image_comparison too.
+        style = ["classic", "_classic_test_patch"]
+        return result
+    else:
+        return make_cleanup
 
 from pyfolio.utils import (to_utc, to_series)
 from pyfolio.tears import (create_full_tear_sheet,
