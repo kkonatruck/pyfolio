@@ -64,3 +64,6 @@ target/
 
 # setuptools-scm generated
 pyfolio/_version.py
+
+# MkDocs build output
+site/

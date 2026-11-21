@@ -63,6 +63,22 @@ and open a notebook. Execute the code in a notebook cell by clicking on it
 and hitting Shift+Enter.
 
 
+## Documentation
+
+Build the documentation site (installs the docs dependencies, builds
+with `mkdocs build --strict` so any warning fails, and checks that
+every internal link resolves) with one command:
+
+```bash
+make docs
+```
+
+The built site is written to `site/`. To preview it locally with
+live reload, run `make docs-serve` and open
+[http://127.0.0.1:8000](http://127.0.0.1:8000). The link check can
+also be run on its own against a built site:
+`python docs/check_links.py site`.
+
 ## Questions?
 
 If you find a bug, feel free to [open an issue](https://github.com/quantopian/pyfolio/issues) in this repository.

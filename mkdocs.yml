@@ -1,15 +1,53 @@
 site_name: pyfolio
 repo_url: https://github.com/quantopian/pyfolio
 site_author: Quantopian Inc.
+strict: true
 
-pages:
-- Overview: 'index.md'
-- Releases: 'whatsnew.md'
-- Tutorial:
-  - 'Single stock': 'notebooks/single_stock_example.md'
-  - 'Zipline algorithm': 'notebooks/zipline_algo_example.md'
-  - 'Sector analysis': 'notebooks/sector_mappings_example.md'
-  - 'Round trip analysis': 'notebooks/round_trip_tear_sheet_example.md'
-  - 'Slippage analysis': 'notebooks/slippage_example.md'
+# The link checker lives next to the docs but is not site content.
+exclude_docs: |
+  check_links.py
+
+# MkDocs 1.0 renamed the `pages:` config key to `nav:` (the old key was
+# later removed; MkDocs >= 1.6 aborts with "The configuration option
+# 'pages' was removed from MkDocs. Use 'nav' instead.").
+nav:
+  - Overview: 'index.md'
+  - Releases: 'whatsnew.md'
+  - Tutorial:
+    - 'Single strategy returns': 'tutorials/single_stock_example.md'
+    - 'Sector analysis': 'tutorials/sector_mappings_example.md'
+    - 'Round trip analysis': 'tutorials/round_trip_tear_sheet_example.md'
+    - 'Slippage analysis': 'tutorials/slippage_example.md'
+  - API reference:
+    - 'Tear sheets': 'api/tears.md'
+    - 'Plotting': 'api/plotting.md'
+    - 'Timeseries': 'api/timeseries.md'
+    - 'Utilities': 'api/utils.md'
+    - 'Transactions': 'api/txn.md'
+    - 'Positions': 'api/pos.md'
+    - 'Round trips': 'api/round_trips.md'
+    - 'Capacity': 'api/capacity.md'
+    - 'Performance attribution': 'api/perf_attrib.md'
+    - 'Interesting periods': 'api/interesting_periods.md'
+
+# MkDocs 1.5+ link/anchor validation. Internal links must point at real
+# documents and anchors; combined with `strict: true` above and
+# `mkdocs build --strict`, a broken internal link fails the build.
+validation:
+  omitted_files: warn
+  absolute_links: warn
+  unrecognized_links: warn
+  anchors: warn
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: false
+
+markdown_extensions:
+  - pymdownx.superfences
 
 extra_css: [extra.css]

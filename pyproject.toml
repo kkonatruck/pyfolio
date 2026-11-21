@@ -36,6 +36,10 @@ homepage = "https://github.com/quantopian/pyfolio"
 repository = "https://github.com/quantopian/pyfolio"
 
 [project.optional-dependencies]
+docs = [
+    "mkdocs>=1.6",
+    "mkdocstrings[python]>=0.25",
+]
 test = [
     "pytest>=7",
     "parameterized>=0.9",
