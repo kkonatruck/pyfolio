@@ -339,8 +339,24 @@ def estimate_intraday(returns, positions, transactions, EOD_hour=23):
         Daily net position values, resampled for intraday behavior.
     """
 
+    if positions.empty or returns.empty:
+        raise ValueError('returns and positions must be non-empty to '
+                         'estimate intraday positions')
+
     # Construct DataFrame of transaction amounts
     txn_val = transactions.copy()
+    if 'date' in txn_val.columns:
+        # Some adapters (e.g. backtrader) carry the trade timestamp in
+        # a 'date' column as well as, or instead of, the index; left in
+        # place it collides with the index name imposed below (#711).
+        # The DatetimeIndex wins when both are present; timezones are
+        # never stripped or localized here, so mismatched tz-awareness
+        # between positions and transactions still raises downstream.
+        if isinstance(txn_val.index, pd.DatetimeIndex):
+            txn_val = txn_val.drop(columns=['date'])
+        else:
+            txn_val = txn_val.set_index(
+                pd.to_datetime(txn_val['date'])).drop(columns=['date'])
     txn_val.index.names = ['date']
     txn_val['value'] = txn_val.amount * txn_val.price
     txn_val = txn_val.reset_index().pivot_table(
