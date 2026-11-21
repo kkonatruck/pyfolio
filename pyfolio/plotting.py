@@ -644,6 +644,10 @@ def show_perf_stats(returns, factor_returns=None, positions=None,
                                             APPROX_BDAYS_PER_MONTH)
         perf_stats = pd.DataFrame(perf_stats_all, columns=['Backtest'])
 
+    # perf_stats is about to hold a mix of numeric and formatted-percent
+    # strings in the same columns; cast to object up front, as setting
+    # strings into a float column is an error in modern pandas.
+    perf_stats = perf_stats.astype(object)
     for column in perf_stats.columns:
         for stat, value in perf_stats[column].items():
             if stat in STAT_FUNCS_PCT:
@@ -820,7 +824,7 @@ def plot_rolling_returns(returns,
                 is_returns,
                 len(oos_cum_returns),
                 cone_std=cone_std,
-                starting_value=is_cum_returns[-1])
+                starting_value=is_cum_returns.iloc[-1])
 
             cone_bounds = cone_bounds.set_index(oos_cum_returns.index)
             for std in cone_std:
@@ -1301,7 +1305,8 @@ def plot_return_quantiles(returns, live_start_date=None, ax=None, **kwargs):
         else returns.loc[returns.index < live_start_date]
     is_weekly = ep.aggregate_returns(is_returns, 'weekly')
     is_monthly = ep.aggregate_returns(is_returns, 'monthly')
-    sns.boxplot(data=[is_returns, is_weekly, is_monthly],
+    sns.boxplot(data=[is_returns.values, is_weekly.values,
+                      is_monthly.values],
                 palette=["#4c72B0", "#55A868", "#CCB974"],
                 ax=ax, **kwargs)
 
@@ -1310,13 +1315,15 @@ def plot_return_quantiles(returns, live_start_date=None, ax=None, **kwargs):
         oos_weekly = ep.aggregate_returns(oos_returns, 'weekly')
         oos_monthly = ep.aggregate_returns(oos_returns, 'monthly')
 
-        sns.swarmplot(data=[oos_returns, oos_weekly, oos_monthly], ax=ax,
+        sns.swarmplot(data=[oos_returns.values, oos_weekly.values,
+                            oos_monthly.values], ax=ax,
                       color="red",
                       marker="d", **kwargs)
         red_dots = matplotlib.lines.Line2D([], [], color="red", marker="d",
                                            label="Out-of-sample data",
                                            linestyle='')
         ax.legend(handles=[red_dots], frameon=True, framealpha=0.5)
+    ax.set_xticks([0, 1, 2])
     ax.set_xticklabels(['Daily', 'Weekly', 'Monthly'])
     ax.set_title('Return quantiles')
 
@@ -1697,7 +1704,7 @@ def plot_monthly_returns_timeseries(returns, ax=None, **kwargs):
     """
 
     def cumulate_returns(x):
-        return ep.cum_returns(x)[-1]
+        return ep.cum_returns(x).iloc[-1]
 
     if ax is None:
         ax = plt.gca()
@@ -1769,7 +1776,7 @@ def plot_round_trip_lifetimes(round_trips, disp_amount=16, lsize=18, ax=None):
                     [y_ix, y_ix], color=c,
                     linewidth=lsize, solid_capstyle='butt')
 
-    ax.set_yticks(range(disp_amount))
+    ax.set_yticks(range(len(sample)))
     ax.set_yticklabels([utils.format_asset(s) for s in sample])
 
     ax.set_ylim((-0.5, min(len(sample), disp_amount) - 0.5))
