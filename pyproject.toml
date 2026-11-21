@@ -1,0 +1,66 @@
+[project]
+name = "pyfolio"
+description = "Performance and risk analysis of financial portfolios with Python"
+requires-python = ">=3.11"
+dynamic = ["version"]
+readme = "README.md"
+authors = [
+    { name = "Quantopian Inc", email = "opensource@quantopian.com" }
+]
+license = "Apache-2.0"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Natural Language :: English",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "numpy>=1.26.0",
+    "pandas>=2.0",
+    "ipython>=3.2.3",
+    "matplotlib>=3.5",
+    "pytz>=2014.10",
+    "scipy>=1.10",
+    "scikit-learn>=1.2",
+    "seaborn>=0.12",
+    "empyrical-reloaded>=0.5.11",
+]
+
+[project.urls]
+homepage = "https://github.com/quantopian/pyfolio"
+repository = "https://github.com/quantopian/pyfolio"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7",
+    "parameterized>=0.9",
+    "nbclient",
+    "nbformat",
+    "ipykernel",
+]
+
+[build-system]
+requires = [
+    "setuptools>=61",
+    "setuptools-scm>=8",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+include-package-data = true
+zip-safe = false
+packages = ["pyfolio", "pyfolio.tests"]
+
+[tool.setuptools_scm]
+write_to = "pyfolio/_version.py"
+version_scheme = "guess-next-dev"
+local_scheme = "dirty-tag"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["pyfolio/tests"]
